@@ -1,0 +1,69 @@
+def select_contract(self):
+    # Открыть диалоговое окно для выбора файла ABI контракта
+    filename, _ = QFileDialog.getOpenFileName(self, "Выберите файл ABI контракта", "", "JSON файлы (*.json)")
+
+    # Если файл не был выбран, прервать выполнение функции
+    if not filename:
+        return
+
+    # Прочитать содержимое файла ABI контракта
+    with open(filename, "r") as f:
+        abi_contents = f.read()
+
+    # Загрузить ABI контракта
+    try:
+        self.nft_abi = json.loads(abi_contents)
+    except json.JSONDecodeError:
+        QMessageBox.warning(self, "Некорректный файл ABI", "Выбранный файл не является допустимым файлом ABI контракта")
+        return
+
+    # Вывести содержимое ABI контракта в поле редактирования
+    self.abi_edit.setPlainText(abi_contents)
+
+def load_abi(self):
+    # Открыть диалоговое окно для выбора файла ABI контракта
+    filename, _ = QFileDialog.getOpenFileName(self, "Выберите файл ABI контракта", "", "JSON файлы (*.json)")
+
+    # Если файл не был выбран, прервать выполнение функции
+    if not filename:
+        return
+
+    # Прочитать содержимое файла ABI контракта
+    with open(filename, "r") as f:
+        abi_contents = f.read()
+
+    # Загрузить ABI контракта
+    try:
+        self.nft_abi = json.loads(abi_contents)
+    except json.JSONDecodeError:
+        QMessageBox.warning(self, "Некорректный файл ABI", "Выбранный файл не является допустимым файлом ABI контракта")
+        return
+
+    # Вывести содержимое ABI контракта в поле редактирования
+    self.abi_edit.setPlainText(abi_contents)
+
+def check_balances(self):
+    # Получить список кошельков из поля редактирования
+    wallets_text = self.wallets_edit.toPlainText()
+
+    # Разбить список на отдельные кошельки
+    wallets = wallets_text.strip().split("\n")
+
+    # Получить экземпляр контракта NFT
+    contract = self.web3.eth.contract(address=self.nft_contract_address, abi=self.nft_abi)
+
+    # Получить балансы NFT каждого кошелька
+    for wallet in wallets:
+        # Проверить, что кошелек является допустимым адресом Ethereum
+        if not self.web3.isChecksumAddress(wallet):
+            QMessageBox.warning(self, "Неверный адрес кошелька", f"Адрес кошелька '{wallet}' не является допустимым адресом Ethereum")
+            continue
+
+        # Получить баланс NFT кошелька
+        try:
+            balance = contract.functions.balanceOf(wallet).call()
+        except:
+            QMessageBox.warning(self, "Ошибка чтения баланса", f"Не удалось прочитать баланс NFT кошелька '{wallet}'")
+            continue
+
+        # Вывести
